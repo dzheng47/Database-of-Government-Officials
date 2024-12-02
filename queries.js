@@ -31,7 +31,10 @@ db.executives.aggregate(
     { $sort:{"terms.party":1}}
 );
 //7. List all legislators who served in both the house and the senate.
-
+db.legislators.aggregate(
+    { $match: { $and:[{"terms.type": "sen"}, {"terms.type": "rep"} ]} },
+    { $project: { "name.first": 1, "name.last": 1, "_id": 0}}, 
+); 
 //8. Count the number of terms served by each party across all presidents and vice presidents.
 
 //9. List vice presidents who were appointed rather than elected.
