@@ -69,6 +69,17 @@ db.executives.aggregate([
       }}}}}
 ]);
 //12. Calculate the total number of years served by each vice president in office.
+db.executives.aggregate([
+  { $unwind: "$terms" },
+  { $match: {"terms.type":"viceprez"}},
+  { $group : {_id:{"first name":"$name.first", "last name":"$name.last"}, "Total Duration (Year)":{
+    $sum:{
+      $dateDiff:{
+        startDate:{$dateFromString:{dateString: "$terms.start"}}, 
+        endDate:{ $dateFromString:{dateString: "$terms.end"}}, 
+        unit:"year"
+      }}}}}
+]);
 //13. List legislators who served in Congress during a vice president’s term and shared the same
 //party affiliation.
 //14. List presidents who had overlapping terms with legislators in the same state.
