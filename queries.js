@@ -36,7 +36,10 @@ db.legislators.aggregate(
     { $project: { "name.first": 1, "name.last": 1, "_id": 0}}, 
 ); 
 //8. Count the number of terms served by each party across all presidents and vice presidents.
-
+db.executives.aggregate([
+    { $unwind: "$terms" },
+    {"$group" : {_id:"$terms.party", count:{$sum:1}}}
+  ]);
 //9. List vice presidents who were appointed rather than elected.
 db.executives.find(
     { "terms.type": "viceprez", "terms.how": "appointment" },
