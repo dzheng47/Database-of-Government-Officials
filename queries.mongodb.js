@@ -38,9 +38,10 @@ db.legislators.aggregate(
 ); 
 //8. Count the number of terms served by each party across all presidents and vice presidents.
 db.executives.aggregate([
-    { $unwind: "$terms" },
-    {"$group" : {_id:"$terms.party", count:{$sum:1}}}
-  ]);
+  { $unwind: "$terms" },
+  { $group : {_id:"$terms.party", count:{$sum:1}}}
+]);
+
 //9. List vice presidents who were appointed rather than elected.
 db.executives.find(
     { "terms.type": "viceprez", "terms.how": "appointment" },
@@ -56,7 +57,17 @@ db.executives.find(
   
 
 //11. Calculate the average duration of presidential terms by party.
-
+db.executives.aggregate([
+  { $unwind: "$terms" },
+  { $match: {"terms.type":"prez"}},
+  { $group : {_id:"$terms.party", "Average Duration (Days)":{
+    $avg:{
+      $dateDiff:{
+        startDate:{$dateFromString:{dateString: "$terms.start"}}, 
+        endDate:{ $dateFromString:{dateString: "$terms.end"}}, 
+        unit:"day"
+      }}}}}
+]);
 //12. Calculate the total number of years served by each vice president in office.
 //13. List legislators who served in Congress during a vice president’s term and shared the same
 //party affiliation.
