@@ -11,10 +11,12 @@ db.legislators.distinct("terms.party");
 // 3. Count the total number of U.S. presidents who were elected without party affiliation (party:
 //"no party"), also display their names.
 db.executives.aggregate(
-    { $match: { "terms.type": "prez", "terms.party": "no party" } },
-    { $project: { "name.first": 1, "name.last": 1, "_id": 0}},
+  { $match: { "terms.type": "prez", "terms.party": "no party" } },
+  { $facet:{
+    "Count":[{$count: 'total'}],
+    "List": [{$project:{"name.first": 1, "name.last": 1, "_id": 0}}]
+  }}
 );
-    //Unfinished and need help also adding in count. Can't seem to get both to work at the same time.
 
 // 4. Identify the longest serving female legislator.
 
