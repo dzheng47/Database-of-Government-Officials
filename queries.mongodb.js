@@ -89,7 +89,6 @@ db.executives.aggregate([
     "name.first": 1, "name.last": 1, "_id": 0
   }}
 ]);
-  
 
 //11. Calculate the average duration of presidential terms by party.
 db.executives.aggregate([
@@ -117,6 +116,40 @@ db.executives.aggregate([
 ]);
 //13. List legislators who served in Congress during a vice president’s term and shared the same
 //party affiliation.
+db.legislators.aggregate([
+  {$unwind: "$terms"},
+  {$lookup: {from: "executives",
+      let: {legislator_terms: "$terms", legislator_party: "$terms.party"},
+             pipeline: [
+              {$unwind: "$terms"},
+              {$match: {$expr: {$eq: ["$terms.type", "viceprez"]}}},
+              {$addFields: { vp_start: { $dateFromString: { dateString: "$terms.start" } },
+                             vp_end: { $dateFromString: { dateString: "$terms.end" } }
+                           }
+              },
+              {$addFields: { legislator_start: { $dateFromString: { dateString: "$$legislator_terms.start" } },
+                             legislator_end: { $dateFromString: { dateString: "$$legislator_terms.end" } }
+                           }
+              },
+              {$match: { $expr: { $or: [{$and: [ { $gte: [ "$legislator_start", "$vp_start" ] },
+                                               { $lte: [ "$legislator_start", "$vp_end" ] }
+                                             ]
+                                        },
+                                        {$and: [ { $gte: [ "$vp_start", "$legislator_start" ] },
+                                                { $lte: [ "$vp_start", "$legislator_end" ] }
+                                            ]
+                                        }]
+                              }
+                       }
+              },
+              // {$match: {$expr: {$eq: ["$terms.party", "legislator_party"]}}},      //CANNOT ACCESS legislator party
+              {$project: {"name.first":1, "name.last":1, "terms.start":1, "terms.end":1, "_id":0}}
+             ],
+             as: "matched_party"
+          },
+  }
+  //Lookup to get name of legislators?
+]);
 
 //14. List presidents who had overlapping terms with legislators in the same state.
 
