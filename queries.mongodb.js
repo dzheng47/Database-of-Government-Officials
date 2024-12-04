@@ -141,14 +141,15 @@ db.legislators.aggregate([
                                         }]
                               }
                        }
-              },
+              }
               // {$match: {$expr: {$eq: ["$terms.party", "legislator_party"]}}},      //CANNOT ACCESS legislator party
-              {$project: {"name.first":1, "name.last":1, "terms.start":1, "terms.end":1, "_id":0}}
+              
              ],
              as: "matched_party"
           },
-  }
-  //Lookup to get name of legislators?
+  },
+    //Lookup to get name of legislators?
+    {$project: {"name.first":1, "name.last":1, "_id":0}}
 ]);
 
 //14. List presidents who had overlapping terms with legislators in the same state.
