@@ -125,6 +125,8 @@ db.executives.aggregate([
 db.legislators.aggregate([
   {$unwind: "$terms"},
   {$lookup: {from: "executives",
+      localField:"terms.party",
+      foreignField:"terms.party",
       let: {legislator_terms: "$terms", legislator_party: "$terms.party"},
              pipeline: [
               {$unwind: "$terms"},
