@@ -19,6 +19,32 @@ db.executives.aggregate(
 );
 
 // 4. Identify the longest serving female legislator.
+db.legislators.aggregate(
+  { $unwind: "$terms" },
+  { $match: { "terms.type": "sen", "bio.gender": "F" } },
+  { $group: { "_id": "$id.bioguide", 
+              "total_time": {
+                  $sum: {
+                    $dateDiff:{
+                      startDate:{$dateFromString:{dateString: "$terms.start"}}, 
+                      endDate:{ $dateFromString:{dateString: "$terms.end"}}, 
+                      unit:"day"
+                    }
+                  }
+                }
+            }
+  },
+  { $sort: { "total_time": -1 } },
+  { $limit: 1 },
+  { $lookup: {
+              from: "legislators",
+              localField: "_id",
+              foreignField: "id.bioguide",
+              as: "longest"
+              }
+  },
+  { $project: {"longest.name.first": 1, "longest.name.last": 1, "_id": 0}}
+);
 
 //5. List all presidents who came to power through succession.
 db.executives.aggregate([
