@@ -1,7 +1,7 @@
 use("project2");
 // 1. List all U.S. presidents with their full names and party affiliation.
 db.executives.find( { "terms.type": "prez" },
-    { "name.first": 1, "name.last": 1, "terms.party": 1, _id: 0 } 
+    { "name.first": 1, "name.last": 1, "terms.party": 1, "_id": 0 } 
 );
 
 //2. List all unique parties represented by legislators.
@@ -44,16 +44,24 @@ db.executives.aggregate([
 
 //9. List vice presidents who were appointed rather than elected.
 db.executives.find(
-    { "terms.type": "viceprez", "terms.how": "appointment" },
-{ "name.first": 1, "name.last": 1, "terms.how": 1, _id: 0 }
-  );
+  { "terms.type": "viceprez", "terms.how": "appointment" },
+  { "name.first": 1, "name.last": 1, "terms.how": 1, "_id": 0 }
+);
   
 
 //10. Identify legislators who did not serve in Congress and later became U.S. presidents.
-db.executives.find(
-    { "terms.type": "prez", "terms.how": "election" },
-    { "name.first": 1, "name.last": 1, "terms.how": 1, _id: 0 }
-  );
+db.executives.aggregate([
+  { $lookup: {
+    from: "legislators",
+    localField: "id.bioguide",
+    foreignField: "id.bioguide",
+    as: "references"
+  }},
+  { $match:{references:[], "terms.type":"prez"}},
+  { $project: {
+    "name.first": 1, "name.last": 1, "_id": 0
+  }}
+]);
   
 
 //11. Calculate the average duration of presidential terms by party.
