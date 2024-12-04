@@ -54,10 +54,16 @@ db.executives.aggregate([
   ]);
   
 //6. List presidents and vice presidents grouped by party affiliation.
-db.executives.aggregate(
-    { $project: { "name.first": 1, "name.last": 1, "terms.type": 1, "terms.party":1, "_id": 0}},
-    { $sort:{"terms.party":1}}
-);
+db.executives.aggregate([
+  {$unwind: "$terms"},
+  {$group: {"_id": "$terms.party",
+            "Name": {$addToSet: { "First Name": "$name.first", 
+                                 "Last Name": "$name.last"
+                               }
+                   }
+          }
+  }
+]);
 
 //7. List all legislators who served in both the house and the senate.
 db.legislators.aggregate(
