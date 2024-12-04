@@ -21,7 +21,7 @@ db.executives.aggregate(
 // 4. Identify the longest serving female legislator.
 db.legislators.aggregate(
   { $unwind: "$terms" },
-  { $match: { "terms.type": "sen", "bio.gender": "F" } },
+  { $match: { "bio.gender": "F" } },
   { $group: { "_id": "$id.bioguide", 
               "total_time": {
                   $sum: {
