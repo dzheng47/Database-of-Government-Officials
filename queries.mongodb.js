@@ -75,7 +75,6 @@ db.executives.find(
   { "terms.type": "viceprez", "terms.how": "appointment" },
   { "name.first": 1, "name.last": 1, "terms.how": 1, "_id": 0 }
 );
-  
 
 //10. Identify legislators who did not serve in Congress and later became U.S. presidents.
 db.executives.aggregate([
@@ -118,6 +117,19 @@ db.executives.aggregate([
 ]);
 //13. List legislators who served in Congress during a vice president’s term and shared the same
 //party affiliation.
+
 //14. List presidents who had overlapping terms with legislators in the same state.
-//15. Identify all presidents and vice presidents who served terms under the same party affiliation/
+
+//15. Identify all presidents and vice presidents who served terms under the same party affiliation
 //in both roles.
+db.executives.aggregate([
+  {$unwind: "$terms"},
+  {$group: {"_id": {"exec_id": "$id.bioguide", "party": "$terms.party"},
+            "first_name": {$first: "$name.first"},
+            "last_name": {$first: "$name.last"},
+            "roles": {$push: "$terms.type"} 
+           }
+  },
+  {$match: {"roles": {$all: ["prez", "viceprez"]}}},
+  {$project: {"first_name":1, "last_name":1, "_id.party":1}}
+]);
