@@ -161,7 +161,33 @@ db.legislators.aggregate([
 ]);
 
 //14. List presidents who had overlapping terms with legislators in the same state.
-
+db.executives.aggregate([
+  {$unwind: "$terms"},
+  {$match: {"terms.type":"pres"}},
+  {$lookup: {from: "legislators",
+      let: {pres_terms: "$terms"},
+             pipeline: [
+              {$unwind: "$terms"},
+              {$addFields: { pres_start: { $dateFromString: { dateString: "$pres_terms.start" } },
+                             pres_end: { $dateFromString: { dateString: "$pres_terms.end" } }
+                           }
+              },
+              {$addFields: { legislator_start: { $dateFromString: { dateString: "$terms.start" } },
+                             legislator_end: { $dateFromString: { dateString: "$terms.end" } }
+                           }
+              },
+              {$match: { $expr: { $and: [ { $eq: [ "$pres_start", "$legislator_start" ] },
+                                          { $eq: [ "$pres_end", "$legislator_end" ] }
+                                        ]
+                                }
+                       }
+              }
+             ],
+             as: "overlap"
+          },
+  },
+    {$project: {"name.first":1, "name.last":1, "_id":0}}
+]);
 //15. Identify all presidents and vice presidents who served terms under the same party affiliation
 //in both roles.
 db.executives.aggregate([
